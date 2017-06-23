@@ -34,22 +34,25 @@ print_header('Building model')
 class Net(nn.Container):
     def __init__(self):
         super(Net, self).__init__(
-            conv1 = nn.Conv2d(1, 20, 5),
-            pool1 = nn.MaxPool2d(2, 2),
-            conv2 = nn.Conv2d(20, 50, 5),
-            pool2 = nn.MaxPool2d(2, 2),
-            fc1   = nn.Linear(800, 500),
-            fc2   = nn.Linear(500, 10),
+            conv1 = nn.Conv2d(1, 5, 5),
+            #pool1 = nn.MaxPool2d(2, 2),
+            conv2 = nn.Conv2d(5, 5, 5),
+            #pool2 = nn.MaxPool2d(2, 2),
+            fc1   = nn.Linear(1000, 10),
+            #fc2   = nn.Linear(500, 10),
             relu  = nn.ReLU(),
             softmax = nn.LogSoftmax(),
         )
 
     def __call__(self, x):
-        x = self.relu(self.pool1(self.conv1(x)))
-        x = self.relu(self.pool2(self.conv2(x)))
-        x = x.view(-1, 800)
+        #x = self.relu(self.pool1(self.conv1(x)))
+        #x = self.relu(self.pool2(self.conv2(x)))
+        #x = x.view(-1, 800)
+
+        x = self.relu(self.conv1(x))
+        x = self.relu(self.conv2(x))
         x = self.relu(self.fc1(x))
-        x = self.relu(self.fc2(x))
+        #x = self.relu(self.fc2(x))
         return self.softmax(x)
 
 model = Net()
@@ -63,7 +66,7 @@ BATCH_SIZE = 150
 TEST_BATCH_SIZE = 1000
 NUM_EPOCHS = 2
 
-optimizer = optim.SGD(model, lr=1e-2, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=1e-2, momentum=0.9)
 
 def train(epoch):
     batch_data_t = torch.FloatTensor(BATCH_SIZE, 1, 28, 28)
@@ -73,7 +76,7 @@ def train(epoch):
         batch_targets_t = batch_targets_t.cuda()
     batch_data = Variable(batch_data_t, requires_grad=False)
     batch_targets = Variable(batch_targets_t, requires_grad=False)
-    for i in range(0, training_data.size(0), BATCH_SIZE):
+    for i in range(0, 2*BATCH_SIZE, BATCH_SIZE):
         batch_data.data[:] = training_data[i:i+BATCH_SIZE]
         batch_targets.data[:] = training_labels[i:i+BATCH_SIZE]
         loss = optimizer.step(lambda: criterion(model(batch_data), batch_targets))
